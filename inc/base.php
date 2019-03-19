@@ -554,19 +554,25 @@ class Base extends Singleton {
 		}
 		$accepted = get_post($acceptedID);
 
-		// Get all revisions created after the accepted revision (ie., are pending)
-		$args = array(
-			'date_query' => array(
-				array(
-					'after'     => $accepted->post_date,
-					'inclusive' => false,
-				),
-			),
-			'posts_per_page' => -1,
-		);
-		$revisions = $this->getNonAutosaveRevisions($postID, $args);
-		$revisionsCount = count($revisions);
-		if ($revisionsCount === 0) {
+        if ($accepted) {
+
+            // Get all revisions created after the accepted revision (ie., are pending)
+            $args = array(
+                'date_query'     => array(
+                    array(
+                        'after'     => $accepted->post_date,
+                        'inclusive' => false,
+                    ),
+                ),
+                'posts_per_page' => -1,
+            );
+            $revisions = $this->getNonAutosaveRevisions($postID, $args);
+            $revisionsCount = count($revisions);
+        } else {
+            $revisionsCount = 0;
+        }
+
+        if ($revisionsCount === 0) {
 			echo '—';
 			return;
 		}
@@ -687,7 +693,7 @@ class Base extends Singleton {
 		} else {
 			$revisionData['current'] = false;
 			$accepted = get_post($acceptedID);
-			if (strtotime($revision->post_date) > strtotime($accepted->post_date)) {
+			if ($accepted && strtotime($revision->post_date) > strtotime($accepted->post_date)) {
 				$revisionData['pending'] = true;
 			}
 		}
