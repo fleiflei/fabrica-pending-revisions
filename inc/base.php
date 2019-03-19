@@ -301,7 +301,13 @@ class Base extends Singleton {
 
 			// Using `update_metadata()` because `update_post_meta()` doesn't save metafields on revisions
 			update_metadata('post', $revision->ID, '_fpr_source_revision_id', $_POST['_fpr_source_revision_id'], '');
-		}
+
+            // check if this is a new revision and call action for further actions (i.e. sending a mail)
+            if ($revision->ID != $_POST['_fpr_source_revision_id']) {
+                do_action('fpr_revision_updated', $post, $revision, $_POST['_fpr_source_revision_id']);
+            }
+
+        }
 
 		// Check if user is authorised to publish changes
 		$editingMode = $this->getEditingMode($postID);
