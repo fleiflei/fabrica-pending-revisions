@@ -84,8 +84,28 @@ class Front extends Singleton {
 		// Accepted revision
 		$acceptedID = get_post_meta($postID, '_fpr_accepted_revision_id', true);
 		if (!$acceptedID || $acceptedID == $postID) { return $value; }
-		return get_field($field['name'], $acceptedID);
-	}
+
+        $revision_value = get_field($field['name'], $acceptedID);
+        
+        /**
+         * Gallery fields cause get_field() on revisions to returns an array with image objects.
+         * ACF seems to expect a simple array containing attachment IDs, thus this needs to be converted as follows:
+         */
+
+        if ($field['type'] == 'gallery') {
+            if (!empty($revision_value) && !empty($revision_value[0]['sizes'])) {// check if full attachment array/object is returned
+                $new_revision_value = array();
+                foreach ($revision_value as $val) {
+                    if (isset($val['ID'])) {
+                        $new_revision_value[] = $val['ID'];
+                    }
+                }
+                $revision_value = $new_revision_value;
+            }
+        }
+
+        return $revision_value;
+    }
 
 	// Replace post thumbnail with accepted revision's
 	public function filterAcceptedRevisionThumbnail($value, $postID, $key, $single) {
